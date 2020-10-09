@@ -1,6 +1,5 @@
 ﻿#include <signal.h>
-// #include <node.h>
-#include <napi.h>
+#include <node.h>
 #include "WrapMd.h"
 #include "WrapTd.h"
 
@@ -8,39 +7,41 @@
 
 namespace ctp
 {
-  using namespace Napi;
-// using v8::FunctionCallbackInfo;
-// using v8::Isolate;
-// using v8::Local;
-// using v8::Object;
-// using v8::Value;
-// using v8::Value;
+using v8::FunctionCallbackInfo;
+using v8::Isolate;
+using v8::Local;
+using v8::Object;
+using v8::Value;
+using v8::Value;
 
 void signal_segv(int sig)
 {
     printf("catch SIGSEGV\n");
 }
 
-void CreateMd(const CallbackInfo& args)
+void CreateMd(const FunctionCallbackInfo<Value>& args) 
 {
     md::WrapMd::NewInstance(args);
 }
 
-void CreateTd(const CallbackInfo& args)
+void CreateTd(const FunctionCallbackInfo<Value>& args) 
 {
     td::WrapTd::NewInstance(args);
 }
 
 
-void Init(Env env, Object exports)
+void Init(Local<Object> exports) 
 {
     //signal(SIGSEGV, signal_segv);
-    md::WrapMd::Init(env);
-    td::WrapTd::Init(env);
-    exports.Set(String::New(env, "createMd"), Function::New(env, CreateMd));
-    exports.Set(String::New(env, "createTd"), Function::New(env, CreateTd));
-    return exports;
+    md::WrapMd::Init(exports->GetIsolate());
+    td::WrapTd::Init(exports->GetIsolate());
+    NODE_SET_METHOD(exports, "crmd", CreateMd);
+    NODE_SET_METHOD(exports, "crtd", CreateTd);
 }
 
-NODE_API_MODULE(NODE_GYP_MODULE_NAME, Init)
+NODE_MODULE(shifctp, Init)
+
+};
+
+
 
