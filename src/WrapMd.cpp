@@ -3,26 +3,26 @@
 ///@company 慧网基金
 ///@file WrapMd.cpp
 ///@brief js回调接口
-///@history 
+///@history
 ///20160326	dreamyzhang		创建该文件
 /////////////////////////////////////////////////////////////////////////
-
+#include <nan.h>
 #include "WrapMd.h"
 
 namespace md
 {
-using v8::HandleScope;
+using v8::Nan::HandleScope;
 using v8::Exception;
 using v8::Null;
 using v8::Context;
 using v8::Function;
-using v8::FunctionCallbackInfo;
+using Nan::FunctionCallbackInfo;
 using v8::FunctionTemplate;
 using v8::Isolate;
 using v8::Local;
 using v8::Number;
 using v8::Object;
-using v8::Persistent;
+using Nan::Persistent;
 using v8::String;
 using v8::Value;
 using v8::Int32;
@@ -31,7 +31,7 @@ using v8::Handle;
 
 
 set<string>         WrapMd::m_event;                //可以注册的回调事件
-Persistent<Function> WrapMd::constructor;           //主动请求函数映射js name
+Nan::Persistent<Function> WrapMd::constructor;           //主动请求函数映射js name
 
 
 WrapMd::WrapMd()
@@ -45,7 +45,7 @@ WrapMd::~WrapMd()
 }
 
 
-void WrapMd::Init(Isolate* isolate) 
+void WrapMd::Init(Isolate* isolate)
 {
     //主动请求函数的映射
     // Prepare constructor template
@@ -90,7 +90,7 @@ void WrapMd::Init(Isolate* isolate)
 
 }
 
-void WrapMd::New(const FunctionCallbackInfo<Value>& args)
+void WrapMd::New(const Nan::FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     if(args.IsConstructCall())
@@ -110,7 +110,7 @@ void WrapMd::New(const FunctionCallbackInfo<Value>& args)
     }
 }
 
-void WrapMd::NewInstance(const FunctionCallbackInfo<Value>& args)
+void WrapMd::NewInstance(const Nan::FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Local<Function> cons = Local<Function>::New(isolate, constructor);
@@ -119,25 +119,25 @@ void WrapMd::NewInstance(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(instance);
 }
 
-void WrapMd::On(const FunctionCallbackInfo<Value>& args)
+void WrapMd::On(const Nan::FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
 
-    if (args[0]->IsUndefined() || args[1]->IsUndefined()) 
+    if (args[0]->IsUndefined() || args[1]->IsUndefined())
     {
         isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments->event name or function")));
         return;
     }
 
-    //WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    //WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
 
     Local<String> eventName = args[0]->ToString();
     Local<Function> cb = Local<Function>::Cast(args[1]);
 
     String::Utf8Value eNameUtf8(eventName);
     std::set<string>::iterator eit = m_event.find(*eNameUtf8);
-    if (eit == m_event.end()) 
+    if (eit == m_event.end())
     {
         isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "System has no register this event")));
         return;
@@ -150,37 +150,37 @@ void WrapMd::On(const FunctionCallbackInfo<Value>& args)
     }
 
     obj->SetCallback(*eNameUtf8, cb, isolate);
-    
+
     args.GetReturnValue().Set(Number::New(isolate, 0));
 }
 
-void WrapMd::Init(const v8::FunctionCallbackInfo<v8::Value>& args)                     
+void WrapMd::Init(const Nan::FunctionCallbackInfo<v8::Value>& args)
 {
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
     Isolate* isolate = args.GetIsolate();
     obj->GetMdApi()->Init();
     args.GetReturnValue().Set(Undefined(isolate));
 }
 
-void WrapMd::Release(const v8::FunctionCallbackInfo<v8::Value>& args)                     
+void WrapMd::Release(const Nan::FunctionCallbackInfo<v8::Value>& args)
 {
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
     Isolate* isolate = args.GetIsolate();
     obj->GetMdApi()->Release();
     args.GetReturnValue().Set(Undefined(isolate));
 }
 
-void WrapMd::Dispose(const v8::FunctionCallbackInfo<v8::Value>& args)                     
+void WrapMd::Dispose(const Nan::FunctionCallbackInfo<v8::Value>& args)
 {
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
     Isolate* isolate = args.GetIsolate();
     obj->dispose();
     args.GetReturnValue().Set(Undefined(isolate));
 }
 
-void WrapMd::CreateFtdcMdApi(const v8::FunctionCallbackInfo<v8::Value>& args)                     
+void WrapMd::CreateFtdcMdApi(const Nan::FunctionCallbackInfo<v8::Value>& args)
 {
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
     Isolate* isolate = args.GetIsolate();
     if (args[0]->IsUndefined())
     {
@@ -191,30 +191,30 @@ void WrapMd::CreateFtdcMdApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 
     CThostFtdcMdApi* m_pApi = CThostFtdcMdApi::CreateFtdcMdApi((char*)*p);
-    
+
     obj->setMdApi(m_pApi);
     obj->RegisterSpi();
     args.GetReturnValue().Set(Undefined(isolate));
 }
 
-void WrapMd::GetApiVersion(const FunctionCallbackInfo<Value>& args)
+void WrapMd::GetApiVersion(const Nan::FunctionCallbackInfo<Value>& args)
 {
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
     Isolate* isolate = args.GetIsolate();
     const char* v = obj->GetMdApi()->GetApiVersion();
     args.GetReturnValue().Set(String::NewFromUtf8(isolate, v));
 }
 
-void WrapMd::GetTradingDay(const FunctionCallbackInfo<Value>& args)
+void WrapMd::GetTradingDay(const Nan::FunctionCallbackInfo<Value>& args)
 {
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
     Isolate* isolate = args.GetIsolate();
     const char* t = obj->GetMdApi()->GetTradingDay();
     args.GetReturnValue().Set(String::NewFromUtf8(isolate, t));
 }
-void WrapMd::RegisterFront(const FunctionCallbackInfo<Value>& args)
+void WrapMd::RegisterFront(const Nan::FunctionCallbackInfo<Value>& args)
 {
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
     Isolate* isolate = args.GetIsolate();
     if (args[0]->IsUndefined())
     {
@@ -228,9 +228,9 @@ void WrapMd::RegisterFront(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Undefined(isolate));
 }
 
-void WrapMd::RegisterNameServer(const FunctionCallbackInfo<Value>& args)
+void WrapMd::RegisterNameServer(const Nan::FunctionCallbackInfo<Value>& args)
 {
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
     Isolate* isolate = args.GetIsolate();
     if (args[0]->IsUndefined())
     {
@@ -243,9 +243,9 @@ void WrapMd::RegisterNameServer(const FunctionCallbackInfo<Value>& args)
     obj->GetMdApi()->RegisterNameServer((char*)*u);
     args.GetReturnValue().Set(Undefined(isolate));
 }
-void WrapMd::RegisterFensUserInfo(const FunctionCallbackInfo<Value>& args)
+void WrapMd::RegisterFensUserInfo(const Nan::FunctionCallbackInfo<Value>& args)
 {
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
     Isolate* isolate = args.GetIsolate();
     if (args[0]->IsUndefined() || !args[0]->IsObject())
     {
@@ -259,7 +259,7 @@ void WrapMd::RegisterFensUserInfo(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Undefined(isolate));
 }
 #define REQ_WITH_REQID(req) \
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());\
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());\
     Isolate* isolate = args.GetIsolate();\
     if (args[0]->IsUndefined() || !args[0]->IsObject() || args[1]->IsUndefined())\
     {\
@@ -270,16 +270,16 @@ void WrapMd::RegisterFensUserInfo(const FunctionCallbackInfo<Value>& args)
     Local<Object> objjs = args[0]->ToObject();\
     CSFunction::set_struct(objjs, &req);\
     int reqid = args[1]->Int32Value();
-    
-void WrapMd::ReqUserLogin(const FunctionCallbackInfo<Value>& args)
+
+void WrapMd::ReqUserLogin(const Nan::FunctionCallbackInfo<Value>& args)
 {
-    CThostFtdcReqUserLoginField req;                          
+    CThostFtdcReqUserLoginField req;
     REQ_WITH_REQID(req);
     int r = obj->GetMdApi()->ReqUserLogin(&req, reqid);
     args.GetReturnValue().Set(Int32::New(isolate, r));
 }
 
-void WrapMd::ReqUserLogout(const FunctionCallbackInfo<Value>& args)
+void WrapMd::ReqUserLogout(const Nan::FunctionCallbackInfo<Value>& args)
 {
     CThostFtdcUserLogoutField req;
     REQ_WITH_REQID(req);
@@ -287,7 +287,7 @@ void WrapMd::ReqUserLogout(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Int32::New(isolate, r));
 }
 
-void WrapMd::ReqQryMulticastInstrument(const FunctionCallbackInfo<Value>& args)
+void WrapMd::ReqQryMulticastInstrument(const Nan::FunctionCallbackInfo<Value>& args)
 {
     CThostFtdcQryMulticastInstrumentField req;
     REQ_WITH_REQID(req);
@@ -295,105 +295,105 @@ void WrapMd::ReqQryMulticastInstrument(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Int32::New(isolate, r));
 }
 
-void WrapMd::SubscribeMarketData(const FunctionCallbackInfo<Value>& args)
+void WrapMd::SubscribeMarketData(const Nan::FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
-    if (args[0]->IsUndefined() || !args[0]->IsArray()) 
-    {                                           
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments"))); 
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    if (args[0]->IsUndefined() || !args[0]->IsArray())
+    {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments")));
         return;
-    }                                                                                              
-    Local<v8::Array> instrumentIDs = Local<v8::Array>::Cast(args[0]); 
+    }
+    Local<v8::Array> instrumentIDs = Local<v8::Array>::Cast(args[0]);
     char** idArray = new char*[instrumentIDs->Length()];
-    for (uint32_t i = 0; i < instrumentIDs->Length(); i++) 
-    {                                       
-        Local<String> instrumentId = instrumentIDs->Get(i)->ToString(); 
+    for (uint32_t i = 0; i < instrumentIDs->Length(); i++)
+    {
+        Local<String> instrumentId = instrumentIDs->Get(i)->ToString();
         String::Utf8Value idUtf8(instrumentId);
         idArray[i] = new char[instrumentId->Length() + 1];
         memset(idArray[i], 0, instrumentId->Length()+1);
-        strncpy(idArray[i], (char*)*idUtf8, instrumentId->Length()); 
+        strncpy(idArray[i], (char*)*idUtf8, instrumentId->Length());
     }
 
     int r = obj->GetMdApi()->SubscribeMarketData(idArray, instrumentIDs->Length());
-    delete idArray;          
+    delete idArray;
     args.GetReturnValue().Set(Int32::New(isolate, r));
 }
 
-void WrapMd::UnSubscribeMarketData(const FunctionCallbackInfo<Value>& args)
+void WrapMd::UnSubscribeMarketData(const Nan::FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
-    if (args[0]->IsUndefined() || !args[0]->IsArray()) 
-    {                                           
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    if (args[0]->IsUndefined() || !args[0]->IsArray())
+    {
         isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments")));
         return;
-    }                                                                                              
+    }
 
-    Local<v8::Array> instrumentIDs = Local<v8::Array>::Cast(args[0]);                              
-    char** idArray = new char*[instrumentIDs->Length()];                                           
+    Local<v8::Array> instrumentIDs = Local<v8::Array>::Cast(args[0]);
+    char** idArray = new char*[instrumentIDs->Length()];
 
-    for (uint32_t i = 0; i < instrumentIDs->Length(); i++) 
-    {                                       
-        Local<String> instrumentId = instrumentIDs->Get(i)->ToString();                            
-        String::Utf8Value idUtf8(instrumentId);                                                  
-        char* id = new char[instrumentId->Length() + 1];                                           
-        strcpy(id, (char*)*idUtf8);                                                                      
-        idArray[i] = id;                                                                           
-    }                                                                                              
+    for (uint32_t i = 0; i < instrumentIDs->Length(); i++)
+    {
+        Local<String> instrumentId = instrumentIDs->Get(i)->ToString();
+        String::Utf8Value idUtf8(instrumentId);
+        char* id = new char[instrumentId->Length() + 1];
+        strcpy(id, (char*)*idUtf8);
+        idArray[i] = id;
+    }
     int r = obj->GetMdApi()->UnSubscribeMarketData(idArray, instrumentIDs->Length());
-    delete idArray;                                                                                
+    delete idArray;
     args.GetReturnValue().Set(Int32::New(isolate, r));
 }
 
-void WrapMd::SubscribeForQuoteRsp(const FunctionCallbackInfo<Value>& args)
+void WrapMd::SubscribeForQuoteRsp(const Nan::FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
-    if (args[0]->IsUndefined() || !args[0]->IsArray()) 
-    {                                           
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments"))); 
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    if (args[0]->IsUndefined() || !args[0]->IsArray())
+    {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments")));
         return;
-    }                                                                                              
-    Local<v8::Array> instrumentIDs = Local<v8::Array>::Cast(args[0]); 
+    }
+    Local<v8::Array> instrumentIDs = Local<v8::Array>::Cast(args[0]);
     char** idArray = new char*[instrumentIDs->Length()];
-    for (uint32_t i = 0; i < instrumentIDs->Length(); i++) 
-    {                                       
-        Local<String> instrumentId = instrumentIDs->Get(i)->ToString(); 
+    for (uint32_t i = 0; i < instrumentIDs->Length(); i++)
+    {
+        Local<String> instrumentId = instrumentIDs->Get(i)->ToString();
         String::Utf8Value idUtf8(instrumentId);
         idArray[i] = new char[instrumentId->Length() + 1];
         memset(idArray[i], 0, instrumentId->Length()+1);
-        strncpy(idArray[i], (char*)*idUtf8, instrumentId->Length()); 
+        strncpy(idArray[i], (char*)*idUtf8, instrumentId->Length());
     }
 
     int r = obj->GetMdApi()->SubscribeForQuoteRsp(idArray, instrumentIDs->Length());
-    delete idArray;          
+    delete idArray;
     args.GetReturnValue().Set(Int32::New(isolate, r));
 }
 
-void WrapMd::UnSubscribeForQuoteRsp(const FunctionCallbackInfo<Value>& args)
+void WrapMd::UnSubscribeForQuoteRsp(const Nan::FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
-    if (args[0]->IsUndefined() || !args[0]->IsArray()) 
-    {                                           
+    WrapMd* obj = Nan::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    if (args[0]->IsUndefined() || !args[0]->IsArray())
+    {
         isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments")));
         return;
-    }                                                                                              
+    }
 
-    Local<v8::Array> instrumentIDs = Local<v8::Array>::Cast(args[0]);                              
-    char** idArray = new char*[instrumentIDs->Length()];                                           
+    Local<v8::Array> instrumentIDs = Local<v8::Array>::Cast(args[0]);
+    char** idArray = new char*[instrumentIDs->Length()];
 
-    for (uint32_t i = 0; i < instrumentIDs->Length(); i++) 
-    {                                       
-        Local<String> instrumentId = instrumentIDs->Get(i)->ToString();                            
-        String::Utf8Value idUtf8(instrumentId);                                                  
-        char* id = new char[instrumentId->Length() + 1];                                           
-        strcpy(id, (char*)*idUtf8);                                                                      
-        idArray[i] = id;                                                                           
-    }                                                                                              
+    for (uint32_t i = 0; i < instrumentIDs->Length(); i++)
+    {
+        Local<String> instrumentId = instrumentIDs->Get(i)->ToString();
+        String::Utf8Value idUtf8(instrumentId);
+        char* id = new char[instrumentId->Length() + 1];
+        strcpy(id, (char*)*idUtf8);
+        idArray[i] = id;
+    }
     int r = obj->GetMdApi()->UnSubscribeForQuoteRsp(idArray, instrumentIDs->Length());
-    delete idArray;                                                                                
+    delete idArray;
     args.GetReturnValue().Set(Int32::New(isolate, r));
 }
 
@@ -402,9 +402,9 @@ void WrapMd::UnSubscribeForQuoteRsp(const FunctionCallbackInfo<Value>& args)
 void WrapMd::MainOnFrontConnected()
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
-    __callback_iter_type it = callback_map.find("OnFrontConnected");            
+    __callback_iter_type it = callback_map.find("OnFrontConnected");
     if(it == callback_map.end()) return;
 
     Local<Function> cb = Local<Function>::New(isolate, it->second);
@@ -414,35 +414,35 @@ void WrapMd::MainOnFrontConnected()
 void WrapMd::MainOnFrontDisconnected(int nReason)
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
    __callback_iter_type it = callback_map.find("OnFrontDisconnected");
     if(it == callback_map.end()) return;
 
-    Local<Value> argv[1] = { Local<Value>::New(isolate, Int32::New(isolate, nReason)) };    
+    Local<Value> argv[1] = { Local<Value>::New(isolate, Int32::New(isolate, nReason)) };
 
     Local<Function> cb = Local<Function>::New(isolate, it->second);
-    cb->Call(Null(isolate), 1, argv);  
+    cb->Call(Null(isolate), 1, argv);
 }
 
 void WrapMd::MainOnHeartBeatWarning(int nTimeLapse)
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
     __callback_iter_type it = callback_map.find("OnHeartBeatWarning");
     if(it == callback_map.end()) return;
 
-    Local<Value> argv[1] = { Local<Value>::New(isolate, Int32::New(isolate, nTimeLapse)) };    
+    Local<Value> argv[1] = { Local<Value>::New(isolate, Int32::New(isolate, nTimeLapse)) };
 
     Local<Function> cb = Local<Function>::New(isolate, it->second);
-    cb->Call(Null(isolate), 1, argv);  
+    cb->Call(Null(isolate), 1, argv);
 }
 
-void WrapMd::MainOnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+void WrapMd::MainOnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
     __callback_iter_type it = callback_map.find("OnRspUserLogin");
     if(it == callback_map.end()) return;
@@ -450,39 +450,39 @@ void WrapMd::MainOnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CTho
     Local<Value> argv[4];
     if(pRspUserLogin != NULL)
     {
-        Local<Object> jsonRtn = Object::New(isolate);                                                  
-        jsonRtn->Set(String::NewFromUtf8(isolate, "TradingDay"), String::NewFromUtf8(isolate, pRspUserLogin->TradingDay));  
-        jsonRtn->Set(String::NewFromUtf8(isolate, "LoginTime"), String::NewFromUtf8(isolate, pRspUserLogin->LoginTime));    
-        jsonRtn->Set(String::NewFromUtf8(isolate, "BrokerID"), String::NewFromUtf8(isolate, pRspUserLogin->BrokerID));      
-        jsonRtn->Set(String::NewFromUtf8(isolate, "UserID"), String::NewFromUtf8(isolate, pRspUserLogin->UserID));          
-        jsonRtn->Set(String::NewFromUtf8(isolate, "SystemName"), String::NewFromUtf8(isolate, pRspUserLogin->SystemName));  
-        jsonRtn->Set(String::NewFromUtf8(isolate, "FrontID"), Int32::New(isolate, pRspUserLogin->FrontID));         
-        jsonRtn->Set(String::NewFromUtf8(isolate, "SessionID"), Int32::New(isolate, pRspUserLogin->SessionID));     
+        Local<Object> jsonRtn = Object::New(isolate);
+        jsonRtn->Set(String::NewFromUtf8(isolate, "TradingDay"), String::NewFromUtf8(isolate, pRspUserLogin->TradingDay));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "LoginTime"), String::NewFromUtf8(isolate, pRspUserLogin->LoginTime));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "BrokerID"), String::NewFromUtf8(isolate, pRspUserLogin->BrokerID));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "UserID"), String::NewFromUtf8(isolate, pRspUserLogin->UserID));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "SystemName"), String::NewFromUtf8(isolate, pRspUserLogin->SystemName));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "FrontID"), Int32::New(isolate, pRspUserLogin->FrontID));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "SessionID"), Int32::New(isolate, pRspUserLogin->SessionID));
         jsonRtn->Set(String::NewFromUtf8(isolate, "MaxOrderRef"), String::NewFromUtf8(isolate, pRspUserLogin->MaxOrderRef));
-        jsonRtn->Set(String::NewFromUtf8(isolate, "SHFETime"), String::NewFromUtf8(isolate, pRspUserLogin->SHFETime));      
-        jsonRtn->Set(String::NewFromUtf8(isolate, "DCETime"), String::NewFromUtf8(isolate, pRspUserLogin->DCETime));        
-        jsonRtn->Set(String::NewFromUtf8(isolate, "CZCETime"), String::NewFromUtf8(isolate, pRspUserLogin->CZCETime));      
-        jsonRtn->Set(String::NewFromUtf8(isolate, "FFEXTime"), String::NewFromUtf8(isolate, pRspUserLogin->FFEXTime));      
-        jsonRtn->Set(String::NewFromUtf8(isolate, "INETime"), String::NewFromUtf8(isolate, pRspUserLogin->INETime));        
+        jsonRtn->Set(String::NewFromUtf8(isolate, "SHFETime"), String::NewFromUtf8(isolate, pRspUserLogin->SHFETime));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "DCETime"), String::NewFromUtf8(isolate, pRspUserLogin->DCETime));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "CZCETime"), String::NewFromUtf8(isolate, pRspUserLogin->CZCETime));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "FFEXTime"), String::NewFromUtf8(isolate, pRspUserLogin->FFEXTime));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "INETime"), String::NewFromUtf8(isolate, pRspUserLogin->INETime));
         argv[0] = jsonRtn;
     }
     else
     {
         argv[0] = Local<Value>::New(isolate, Undefined(isolate));
     }
-    argv[1] = PkgRspInfo(pRspInfo); 
+    argv[1] = PkgRspInfo(pRspInfo);
     argv[2] = Local<Value>::New(isolate, Int32::New(isolate, nRequestID));
 
     argv[3] = Boolean::New(isolate, bIsLast)->ToBoolean();
 
     Local<Function> cb = Local<Function>::New(isolate, it->second);
-    cb->Call(Null(isolate), 4, argv);  
+    cb->Call(Null(isolate), 4, argv);
 }
 
-void WrapMd::MainOnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+void WrapMd::MainOnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
     __callback_iter_type it = callback_map.find("OnRspUserLogout");
     if(it == callback_map.end()) return;
@@ -492,43 +492,43 @@ void WrapMd::MainOnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostF
     {
         Local<Object> jsonRtn = Object::New(isolate);
         jsonRtn->Set(String::NewFromUtf8(isolate, "BrokerID"), String::NewFromUtf8(isolate, pUserLogout->BrokerID));
-        jsonRtn->Set(String::NewFromUtf8(isolate, "UserID"), String::NewFromUtf8(isolate, pUserLogout->UserID));   
+        jsonRtn->Set(String::NewFromUtf8(isolate, "UserID"), String::NewFromUtf8(isolate, pUserLogout->UserID));
         argv[0] = jsonRtn;
     }
     else
     {
         argv[0] = Local<Value>::New(isolate, Undefined(isolate));
     }
-    argv[1] = PkgRspInfo(pRspInfo); 
+    argv[1] = PkgRspInfo(pRspInfo);
     argv[2] = Local<Value>::New(isolate, Int32::New(isolate, nRequestID));
 
     argv[3] = Boolean::New(isolate, bIsLast)->ToBoolean();
 
     Local<Function> cb = Local<Function>::New(isolate, it->second);
-    cb->Call(Null(isolate), 4, argv);  
+    cb->Call(Null(isolate), 4, argv);
 }
 
-void WrapMd::MainOnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+void WrapMd::MainOnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
     __callback_iter_type it = callback_map.find("OnRspError");
     if(it == callback_map.end()) return;
 
     Local<Value> argv[3];
-    argv[0] = PkgRspInfo(pRspInfo); 
+    argv[0] = PkgRspInfo(pRspInfo);
     argv[1] = Local<Value>::New(isolate, Int32::New(isolate, nRequestID));
     argv[2] = Boolean::New(isolate, bIsLast)->ToBoolean();
 
     Local<Function> cb = Local<Function>::New(isolate, it->second);
-    cb->Call(Null(isolate), 3, argv);  
+    cb->Call(Null(isolate), 3, argv);
 }
 
-void WrapMd::MainOnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+void WrapMd::MainOnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
     __callback_iter_type it = callback_map.find("OnRspSubMarketData");
     if(it == callback_map.end()) return;
@@ -544,19 +544,19 @@ void WrapMd::MainOnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecific
     {
         argv[0] = Local<Value>::New(isolate, Undefined(isolate));
     }
-    argv[1] = PkgRspInfo(pRspInfo); 
+    argv[1] = PkgRspInfo(pRspInfo);
     argv[2] = Local<Value>::New(isolate, Int32::New(isolate, nRequestID));
 
     argv[3] = Boolean::New(isolate, bIsLast)->ToBoolean();
 
     Local<Function> cb = Local<Function>::New(isolate, it->second);
-    cb->Call(Null(isolate), 4, argv);  
+    cb->Call(Null(isolate), 4, argv);
 }
 
-void WrapMd::MainOnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+void WrapMd::MainOnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
     __callback_iter_type it = callback_map.find("OnRspUnSubMarketData");
     if(it == callback_map.end()) return;
@@ -577,13 +577,13 @@ void WrapMd::MainOnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecif
     argv[3] = Boolean::New(isolate, bIsLast)->ToBoolean();
 
     Local<Function> cb = Local<Function>::New(isolate, it->second);
-    cb->Call(Null(isolate), 4, argv);  
+    cb->Call(Null(isolate), 4, argv);
 }
 
-void WrapMd::MainOnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+void WrapMd::MainOnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
     __callback_iter_type it = callback_map.find("OnRspSubForQuoteRsp");
     if(it == callback_map.end()) return;
@@ -604,13 +604,13 @@ void WrapMd::MainOnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecifi
     argv[3] = Boolean::New(isolate, bIsLast)->ToBoolean();
 
     Local<Function> cb = Local<Function>::New(isolate, it->second);
-    cb->Call(Null(isolate), 4, argv);  
+    cb->Call(Null(isolate), 4, argv);
 }
 
-void WrapMd::MainOnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+void WrapMd::MainOnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
     __callback_iter_type it = callback_map.find("OnRspUnSubForQuoteRsp");
     if(it == callback_map.end()) return;
@@ -631,14 +631,14 @@ void WrapMd::MainOnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpeci
     argv[3] = Boolean::New(isolate, bIsLast)->ToBoolean();
 
     Local<Function> cb = Local<Function>::New(isolate, it->second);
-    cb->Call(Null(isolate), 4, argv);  
+    cb->Call(Null(isolate), 4, argv);
 }
 
 
-void WrapMd::MainOnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData) 
+void WrapMd::MainOnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData)
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
     __callback_iter_type it = callback_map.find("OnRtnDepthMarketData");
     if(it == callback_map.end()) return;
@@ -690,7 +690,7 @@ void WrapMd::MainOnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMark
         jsonRtn->Set(String::NewFromUtf8(isolate, "AskPrice5"), Number::New(isolate, pDepthMarketData->AskPrice5));
         jsonRtn->Set(String::NewFromUtf8(isolate, "AskVolume5"), Number::New(isolate, pDepthMarketData->AskVolume5));
         jsonRtn->Set(String::NewFromUtf8(isolate, "AveragePrice"), Number::New(isolate, pDepthMarketData->AveragePrice));
-        jsonRtn->Set(String::NewFromUtf8(isolate, "ActionDay"), String::NewFromUtf8(isolate, pDepthMarketData->ActionDay));	   	
+        jsonRtn->Set(String::NewFromUtf8(isolate, "ActionDay"), String::NewFromUtf8(isolate, pDepthMarketData->ActionDay));
         argv[0] = jsonRtn;
     }
     else
@@ -699,13 +699,13 @@ void WrapMd::MainOnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMark
     }
 
     Local<Function> cb = Local<Function>::New(isolate, it->second);
-    cb->Call(Null(isolate), 1, argv);  
+    cb->Call(Null(isolate), 1, argv);
 }
 
-void WrapMd::MainOnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp) 
+void WrapMd::MainOnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp)
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
     __callback_iter_type it = callback_map.find("OnRtnForQuoteRsp");
     if(it == callback_map.end()) return;
@@ -728,13 +728,13 @@ void WrapMd::MainOnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp)
     }
 
     Local<Function> cb = Local<Function>::New(isolate, it->second);
-    cb->Call(Null(isolate), 1, argv);  
+    cb->Call(Null(isolate), 1, argv);
 }
 
-void WrapMd::MainOnRspQryMulticastInstrument(CThostFtdcMulticastInstrumentField *pMulticastInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+void WrapMd::MainOnRspQryMulticastInstrument(CThostFtdcMulticastInstrumentField *pMulticastInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Nan::HandleScope scope(isolate);
 
     __callback_iter_type it = callback_map.find("OnRspQryMulticastInstrument");
     if(it == callback_map.end()) return;
@@ -755,7 +755,7 @@ void WrapMd::MainOnRspQryMulticastInstrument(CThostFtdcMulticastInstrumentField 
     {
         argv[0] = Local<Value>::New(isolate, Undefined(isolate));
     }
-    argv[1] = PkgRspInfo(pRspInfo); 
+    argv[1] = PkgRspInfo(pRspInfo);
     argv[2] = Local<Value>::New(isolate, Int32::New(isolate, nRequestID));
 
     argv[3] = Boolean::New(isolate, bIsLast)->ToBoolean();

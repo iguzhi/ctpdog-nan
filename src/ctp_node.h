@@ -1,6 +1,7 @@
 ﻿#ifndef __NODE_CTP__
 #define __NODE_CTP__
 
+#include <nan.h>
 #include <v8.h>
 #include <string>
 #include "ThostFtdcUserApiStruct.h"
@@ -19,23 +20,23 @@ public:
 
 #ifdef WIN32
 #include <windows.h>
-static string GBK2UTF8(string strGBK)  
-{  
-    string strOutUTF8 = "";  
-    WCHAR * str1;  
-    int n = MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, NULL, 0);  
-    str1 = new WCHAR[n];  
-    MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, str1, n);  
-    n = WideCharToMultiByte(CP_UTF8, 0, str1, -1, NULL, 0, NULL, NULL);  
-    char * str2 = new char[n];  
-    WideCharToMultiByte(CP_UTF8, 0, str1, -1, str2, n, NULL, NULL);  
-    strOutUTF8 = str2;  
-    delete[]str1;  
-    str1 = NULL;  
-    delete[]str2;  
-    str2 = NULL;  
-    return strOutUTF8;  
-}  
+static string GBK2UTF8(string strGBK)
+{
+    string strOutUTF8 = "";
+    WCHAR * str1;
+    int n = MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, NULL, 0);
+    str1 = new WCHAR[n];
+    MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, str1, n);
+    n = WideCharToMultiByte(CP_UTF8, 0, str1, -1, NULL, 0, NULL, NULL);
+    char * str2 = new char[n];
+    WideCharToMultiByte(CP_UTF8, 0, str1, -1, str2, n, NULL, NULL);
+    strOutUTF8 = str2;
+    delete[]str1;
+    str1 = NULL;
+    delete[]str2;
+    str2 = NULL;
+    return strOutUTF8;
+}
 #else
 static string GBK2UTF8(string src)
 {
@@ -52,7 +53,7 @@ static string GBK2UTF8(string src)
     if(conv == 0) return "";
     iconv(conv, &pin, &inlen, &pout, &outlen);
     iconv_close(conv);
-    
+
     string tmp = dest;
     delete dest;
     return tmp;
